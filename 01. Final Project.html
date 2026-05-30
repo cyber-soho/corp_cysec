@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber.SoHo Final Project Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Sand & Cyber Slate -->
+    <!-- Application Structure Plan: The SPA is designed as a "Mission Control" dashboard. It synthesizes the linear 38-slide presentation into four logical, task-oriented sections: 1. Mission Briefing (Context & Grading), 2. Lab Architecture (The Environment), 3. Operations Roadmap (The 4 Stages via tabs), and 4. Interactive Risk Matrix (Tooling). This structure was chosen because it allows students to quickly access the specific requirements, technical details, and frameworks needed for whichever stage of the project they are currently executing, rather than scrolling through a slide deck. -->
+    <!-- Visualization & Content Choices: 
+         - Eval Breakdown -> Goal: Inform -> Doughnut Chart (Chart.js) -> Interaction: Hover tooltips -> Justifies grading focus.
+         - Lab Architecture -> Goal: Organize relationships -> CSS Grid Blocks -> Interaction: Hover to reveal IP details -> Shows segmentation without SVG.
+         - The 4 Stages -> Goal: Process/Organize -> Tabbed Interface -> Interaction: Click to navigate phases -> Keeps UI clean while housing dense requirements.
+         - Risk Assessment -> Goal: Inform/Compute -> Interactive 5x5 HTML Table -> Interaction: Click cells to calculate risk -> Simulates NIST 800-30 scoring. 
+         Library: Chart.js used for the doughnut chart. NO SVG or Mermaid used. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            background-color: #faf9f6;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background-color: #0f766e;
+            color: white;
+            border-bottom: 4px solid #115e59;
+        }
+        .tab-btn:not(.active):hover {
+            background-color: #e2e8f0;
+        }
+
+        .vlan-card {
+            transition: transform 0.2s ease;
+        }
+        .vlan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .risk-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .risk-cell:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">🛡️</span>
+                    <span class="font-bold text-xl tracking-wider">Cyber.SoHo Hub</span>
+                </div>
+                <div class="hidden md:block text-sm text-slate-300">
+                    Course: 420-4C2-DW | Implementation & Management
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <header class="text-center space-y-4 max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Corporate Cybersecurity Measures</h1>
+            <p class="text-lg text-slate-600">Final Project Dashboard &bull; Spring 2026</p>
+            <div class="inline-block bg-teal-100 text-teal-800 px-4 py-2 rounded-full font-semibold text-sm mt-4">
+                16 Sessions &bull; VirtualBox Lab &bull; Pair Work
+            </div>
+        </header>
+
+        <section id="mission-briefing" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2 border-b-2 border-teal-600 inline-block pb-1">Mission Briefing & Context</h2>
+                <p class="text-slate-600 mt-2">This section provides the foundational context for the project. It outlines the fictional client you are protecting, the stakes involved, and how your efforts across the four stages will be evaluated. Understanding the client's profile is critical, as your security recommendations must fit a mid-size manufacturer's resources, not a Fortune 500 budget.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 border-l-4 border-l-teal-600">
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center mb-3">
+                            <span class="mr-2">🏭</span> Client: NordForge Industries Inc.
+                        </h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li><strong>Profile:</strong> Quebec precision-forging manufacturer.</li>
+                            <li><strong>Scale:</strong> ~180 employees across 3 sites (Montréal HQ, Trois-Rivières plant, Boston R&D).</li>
+                            <li><strong>Incident:</strong> Recently hit by a phishing incident. Confidential IP at stake.</li>
+                            <li><strong>Compliance:</strong> Subject to PIPEDA, Quebec Law 25, and Bill C-26.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-orange-50 p-5 rounded-xl border border-orange-100">
+                        <h3 class="font-bold text-orange-800 mb-2">Key Takeaway</h3>
+                        <p class="text-orange-900 text-sm">This is not a lecture-style exam. It is a full security lifecycle compressed into four weeks: Build &rarr; Harden &rarr; Attack &rarr; Respond. Siloed answers will lose marks.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Evaluation Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="evalChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-4 italic">Exam + Final Document = 60%. Do not neglect the write-up.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="bg-slate-900 rounded-2xl shadow-lg p-6 md:p-8 text-slate-200">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white mb-2 border-b-2 border-teal-500 inline-block pb-1">Lab Architecture Overview</h2>
+                <p class="text-slate-400 mt-2">This interactive map outlines the perimeter and segmentation of the NordForge environment you will build and defend. Each Virtual Local Area Network (VLAN) serves a distinct defensive purpose. Inter-VLAN routing must only happen through the perimeter firewall. Hover over the network zones to view their specific IP subnets and roles.</p>
+            </div>
+
+            <div class="relative bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <div class="text-center mb-6">
+                    <div class="inline-block bg-red-900/50 border border-red-500 text-red-300 px-6 py-3 rounded-lg font-mono font-bold">
+                        🌐 External NAT (Attacker Foothold) <br><span class="text-sm font-normal">198.51.100.0/24</span>
+                    </div>
+                    <div class="h-8 w-1 bg-red-500 mx-auto my-2"></div>
+                    <div class="inline-block bg-slate-700 border-2 border-teal-500 text-white px-8 py-4 rounded-xl font-bold shadow-lg">
+                        🛡️ Perimeter Firewall (OPNsense)
+                        <div class="text-xs font-normal text-teal-300 mt-1">Deny-by-default routing</div>
+                    </div>
+                    <div class="flex justify-center mt-2">
+                        <div class="h-1 w-3/4 bg-teal-500"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                    <div class="vlan-card bg-slate-700 p-4 rounded-lg border border-slate-600 text-center group">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <h4 class="font-bold text-white">MGMT</h4>
+                        <p class="text-xs text-slate-400 mt-1 group-hover:text-teal-300 transition-colors">10.10.10.0/24</p>
+                        <p class="text-xs mt-2 text-slate-300">Firewall + Switch Admin</p>
+                    </div>
+                    
+                    <div class="vlan-card bg-slate-700 p-4 rounded-lg border border-slate-600 text-center group">
+                        <div class="text-2xl mb-2">🏢</div>
+                        <h4 class="font-bold text-white">CORP</h4>
+                        <p class="text-xs text-slate-400 mt-1 group-hover:text-teal-300 transition-colors">10.10.20.0/24</p>
+                        <p class="text-xs mt-2 text-slate-300">AD: corp.nordforge.local</p>
+                    </div>
+
+                    <div class="vlan-card bg-slate-700 p-4 rounded-lg border border-slate-600 text-center group">
+                        <div class="text-2xl mb-2">🌍</div>
+                        <h4 class="font-bold text-white">DMZ</h4>
+                        <p class="text-xs text-slate-400 mt-1 group-hover:text-teal-300 transition-colors">10.10.30.0/24</p>
+                        <p class="text-xs mt-2 text-slate-300">Public-facing services</p>
+                    </div>
+
+                    <div class="vlan-card bg-slate-700 p-4 rounded-lg border border-slate-600 text-center group">
+                        <div class="text-2xl mb-2">👁️</div>
+                        <h4 class="font-bold text-white">SOC</h4>
+                        <p class="text-xs text-slate-400 mt-1 group-hover:text-teal-300 transition-colors">10.10.40.0/24</p>
+                        <p class="text-xs mt-2 text-slate-300">Wazuh + Suricata</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 md:p-8 border-b border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2 border-b-2 border-teal-600 inline-block pb-1">Operations Roadmap</h2>
+                <p class="text-slate-600 mt-2">Navigate through the four chronological stages of the project. Each stage maps to specific core competencies, deliverables, and methodologies. Use the tabs below to explore the objectives, required frameworks (like STRIDE and PTES), and key takeaways for each phase. Front-loading your effort here is crucial, as artifacts from Stage 1 feed into all subsequent stages.</p>
+            </div>
+
+            <div class="flex flex-wrap border-b border-slate-200 bg-slate-50">
+                <button onclick="switchTab('stage1')" id="btn-stage1" class="tab-btn active flex-1 py-4 px-6 font-bold text-sm sm:text-base focus:outline-none">Stage 1: Know Thy Network</button>
+                <button onclick="switchTab('stage2')" id="btn-stage2" class="tab-btn flex-1 py-4 px-6 font-bold text-sm sm:text-base focus:outline-none text-slate-600">Stage 2: Harden & Secure</button>
+                <button onclick="switchTab('stage3')" id="btn-stage3" class="tab-btn flex-1 py-4 px-6 font-bold text-sm sm:text-base focus:outline-none text-slate-600">Stage 3: Test the Defence</button>
+                <button onclick="switchTab('stage4')" id="btn-stage4" class="tab-btn flex-1 py-4 px-6 font-bold text-sm sm:text-base focus:outline-none text-slate-600">Stage 4: Detect & Respond</button>
+            </div>
+
+            <div class="p-6 md:p-8 min-h-[400px]">
+                <div id="content-stage1" class="tab-content space-y-6">
+                    <div class="flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Know Thy Network</h3>
+                            <p class="text-sm text-teal-700 font-semibold mt-1">Due: Thu 04 Jun | Weight: 7%</p>
+                        </div>
+                        <div class="bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Focus: Monitoring, Risks, Vulns</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-3 border-b pb-2">Objectives</h4>
+                            <ul class="list-disc pl-5 space-y-2 text-slate-700 text-sm">
+                                <li>Enumerate every asset in the lab.</li>
+                                <li>Identify threats against assets using <strong>STRIDE</strong>.</li>
+                                <li>Rank risks using <strong>NIST SP 800-30</strong>.</li>
+                                <li>Baseline the network (Nmap + Wireshark).</li>
+                                <li>Deploy monitoring stack (Wazuh + Suricata).</li>
+                            </ul>
+                            
+                            <div class="mt-6 bg-teal-50 p-4 rounded-lg border border-teal-100">
+                                <h4 class="font-bold text-teal-800 mb-2">The STRIDE Framework</h4>
+                                <div class="grid grid-cols-2 gap-2 text-xs text-teal-900">
+                                    <div><strong>S</strong>poofing</div>
+                                    <div><strong>T</strong>ampering</div>
+                                    <div><strong>R</strong>epudiation</div>
+                                    <div><strong>I</strong>nfo Disclosure</div>
+                                    <div><strong>D</strong>enial of Service</div>
+                                    <div><strong>E</strong>levation of Priv.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-3 border-b pb-2">Interactive Risk Matrix (NIST 800-30)</h4>
+                            <p class="text-xs text-slate-500 mb-3">Click a cell to compute the Inherent Risk (Likelihood × Impact).</p>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-center border-collapse">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-xs p-1 text-slate-400 font-normal">L \ I</th>
+                                            <th class="bg-slate-100 text-xs p-2">1. Negligible</th>
+                                            <th class="bg-slate-100 text-xs p-2">2. Minor</th>
+                                            <th class="bg-slate-100 text-xs p-2">3. Moderate</th>
+                                            <th class="bg-slate-100 text-xs p-2">4. Major</th>
+                                            <th class="bg-slate-100 text-xs p-2">5. Catastrophic</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="risk-matrix-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="risk-result" class="mt-4 p-3 rounded-lg text-center font-bold bg-slate-50 text-slate-500 border border-slate-200">
+                                Select a scenario on the matrix.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-stage2" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Harden & Secure</h3>
+                            <p class="text-sm text-teal-700 font-semibold mt-1">Due: Thu 11 Jun | Weight: 7%</p>
+                        </div>
+                        <div class="bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Focus: Cyber Defence, Compliance</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🧱</span> Firewall Design</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-none">
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Deny by default, allow by exception.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Specific rules before general rules.</li>
+                                <li class="flex items-start"><span class="text-red-500 mr-2">✗</span> No "any-any" rules permitted.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Inter-VLAN routing only at firewall.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🐧</span> Host Hardening</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-none">
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> <strong>Linux:</strong> SSH key-only, UFW active, auditd, pwquality.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> <strong>Windows:</strong> Disable SMBv1, block NTLMv1, max UAC.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> PowerShell logging & AppLocker on.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🔑</span> AD Security</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-none">
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Tier-0/1/2 admin model.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> LAPS implemented.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Protected Users group for DA.</li>
+                                <li class="flex items-start"><span class="text-teal-500 mr-2">✓</span> Rotate krbtgt annually.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800 text-slate-200 p-4 rounded-lg mt-4 flex items-center justify-between">
+                        <div>
+                            <strong class="text-white block">Vulnerability Management Flow:</strong>
+                            <span class="text-sm">Scan &rarr; Triage (CVSS v3.1/v4) &rarr; Assign &rarr; Remediate &rarr; Verify</span>
+                        </div>
+                        <div class="text-2xl">🔄</div>
+                    </div>
+                </div>
+
+                <div id="content-stage3" class="tab-content hidden space-y-6">
+                     <div class="flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Test the Defence</h3>
+                            <p class="text-sm text-teal-700 font-semibold mt-1">Due: Thu 18 Jun | Weight: 7%</p>
+                        </div>
+                        <div class="bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Focus: Intrusion Tests</div>
+                    </div>
+
+                    <div class="bg-red-50 border-l-4 border-red-600 p-4 mb-6">
+                        <p class="text-red-800 font-bold">⚠️ Prerequisite: Signed Rules of Engagement (RoE).</p>
+                        <p class="text-red-700 text-sm">No RoE signature &rarr; no testing. Out-of-scope testing is an offence under s. 342.1 of the Criminal Code.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-3 border-b pb-2">PTES Methodology</h4>
+                            <div class="space-y-2 mt-4 text-sm text-slate-700">
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">1</span> Pre-engagement (RoE)</div>
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">2</span> Intelligence Gathering</div>
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">3</span> Threat Modelling</div>
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">4</span> Vulnerability Analysis</div>
+                                <div class="flex items-center"><span class="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">5</span> Exploitation</div>
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">6</span> Post-exploitation</div>
+                                <div class="flex items-center"><span class="bg-slate-200 w-6 h-6 rounded-full flex items-center justify-center mr-3 font-bold text-xs">7</span> Reporting</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-3 border-b pb-2">Mandatory Exploits</h4>
+                            <p class="text-sm text-slate-600 mb-4">You must successfully demonstrate one exploit from each domain:</p>
+                            
+                            <div class="space-y-3">
+                                <div class="border border-slate-200 rounded p-3 flex justify-between items-center bg-white">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-sm">Network Service</div>
+                                        <div class="text-xs text-slate-500">Target: Metasploitable 2</div>
+                                    </div>
+                                    <div class="text-xs font-mono bg-slate-100 px-2 py-1 rounded">Unauth. service exploit</div>
+                                </div>
+                                <div class="border border-slate-200 rounded p-3 flex justify-between items-center bg-white">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-sm">Web Application</div>
+                                        <div class="text-xs text-slate-500">Target: DVWA / Juice Shop</div>
+                                    </div>
+                                    <div class="text-xs font-mono bg-slate-100 px-2 py-1 rounded">OWASP Top 10 chain</div>
+                                </div>
+                                <div class="border border-slate-200 rounded p-3 flex justify-between items-center bg-white">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-sm">Active Directory</div>
+                                        <div class="text-xs text-slate-500">Target: corp.nordforge.local</div>
+                                    </div>
+                                    <div class="text-xs font-mono bg-slate-100 px-2 py-1 rounded">AS-REP / Kerberoasting</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-stage4" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Detect, Respond, Recover, Educate</h3>
+                            <p class="text-sm text-teal-700 font-semibold mt-1">Due: Tue 23 Jun | Weight: 7%</p>
+                        </div>
+                        <div class="bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Focus: Incident Management</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-4 text-center">NIST SP 800-61 Lifecycle</h4>
+                            <div class="flex flex-col space-y-2 max-w-xs mx-auto">
+                                <div class="bg-teal-600 text-white text-center py-2 rounded shadow-sm text-sm font-bold">1. Preparation</div>
+                                <div class="text-center text-slate-400">⬇</div>
+                                <div class="bg-slate-700 text-white text-center py-2 rounded shadow-sm text-sm">2. Identification</div>
+                                <div class="text-center text-slate-400">⬇</div>
+                                <div class="bg-slate-700 text-white text-center py-2 rounded shadow-sm text-sm">3. Containment</div>
+                                <div class="text-center text-slate-400">⬇</div>
+                                <div class="bg-slate-700 text-white text-center py-2 rounded shadow-sm text-sm">4. Eradication</div>
+                                <div class="text-center text-slate-400">⬇</div>
+                                <div class="bg-slate-700 text-white text-center py-2 rounded shadow-sm text-sm">5. Recovery</div>
+                                <div class="text-center text-slate-400">⬇</div>
+                                <div class="bg-teal-600 text-white text-center py-2 rounded shadow-sm text-sm font-bold">6. Lessons Learned</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 border-b pb-1">Required Deliverables</h4>
+                                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                                    <li>Forensic collection with <strong>Chain of Custody</strong> (SHA-256 hashes).</li>
+                                    <li>Root-cause + <strong>MITRE ATT&CK</strong> mapping for all Stage 3 exploits.</li>
+                                    <li>Final IH&R plan v1.0.</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 border-b pb-1">Required Playbooks</h4>
+                                <div class="grid gap-2">
+                                    <div class="bg-white border border-slate-200 p-2 rounded text-sm"><span class="font-bold">🎣 Phishing:</span> Triage, scope, contain, communicate.</div>
+                                    <div class="bg-white border border-slate-200 p-2 rounded text-sm"><span class="font-bold">🔒 Ransomware:</span> Double-extortion assumption. Do not power off. Check sanctions.</div>
+                                    <div class="bg-white border border-slate-200 p-2 rounded text-sm"><span class="font-bold">🌐 Web App:</span> Log preservation, WAF containment, secret rotation.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm mt-12 border-t border-slate-800">
+        <p>&copy; 2026 Cyber.SoHo Educational Hub — Educational materials for enrolled students.</p>
+        <p class="mt-2 text-xs italic">"From the Industry to the Classroom — Building IT's Future, Today and Together!"</p>
+    </footer>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Remove active state from all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('text-slate-600');
+                el.classList.remove('text-white');
+            });
+
+            // Show selected content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            
+            // Set active state on clicked button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('text-slate-600');
+            activeBtn.classList.add('text-white');
+        }
+
+        // --- Chart.js Implementation ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('evalChart').getContext('2d');
+            
+            // Evaluation Data mapped from slide 5
+            const evalData = {
+                labels: ['Staged Deliverables (4x)', 'Final Document', 'Oral Presentation', 'Written Exam'],
+                datasets: [{
+                    data: [28, 30, 12, 30],
+                    backgroundColor: [
+                        '#0f766e', // Teal 700
+                        '#334155', // Slate 700
+                        '#c2410c', // Orange 700
+                        '#94a3b8'  // Slate 400
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            };
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: evalData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    family: "'Segoe UI', sans-serif",
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // --- Risk Matrix Logic ---
+            buildRiskMatrix();
+        });
+
+        // --- Interactive Risk Matrix Setup ---
+        function buildRiskMatrix() {
+            const tbody = document.getElementById('risk-matrix-body');
+            const resultDiv = document.getElementById('risk-result');
+            
+            const likelihoods = [
+                { val: 1, label: '1. Rare' },
+                { val: 2, label: '2. Unlikely' },
+                { val: 3, label: '3. Possible' },
+                { val: 4, label: '4. Likely' },
+                { val: 5, label: '5. Certain' }
+            ];
+
+            // Color logic based on standard risk matrices
+            function getRiskColor(score) {
+                if (score <= 4) return 'bg-green-100 text-green-800 border-green-200';
+                if (score <= 9) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                if (score <= 15) return 'bg-orange-100 text-orange-800 border-orange-200';
+                return 'bg-red-100 text-red-800 border-red-200';
+            }
+
+            function getRiskLevelStr(score) {
+                if (score <= 4) return 'Low Risk (Accept/Monitor)';
+                if (score <= 9) return 'Moderate Risk (Mitigate)';
+                if (score <= 15) return 'High Risk (Mitigate/Transfer)';
+                return 'Critical Risk (Avoid/Immediate Action)';
+            }
+
+            likelihoods.forEach(l => {
+                const tr = document.createElement('tr');
+                // Row header
+                const th = document.createElement('th');
+                th.className = 'bg-slate-100 text-xs p-2 text-left font-normal';
+                th.innerText = l.label;
+                tr.appendChild(th);
+
+                // Create 5 columns for Impact (1 to 5)
+                for (let i = 1; i <= 5; i++) {
+                    const td = document.createElement('td');
+                    const score = l.val * i;
+                    
+                    td.className = `risk-cell p-2 text-sm border font-bold ${getRiskColor(score)}`;
+                    td.innerText = score;
+                    
+                    td.addEventListener('click', () => {
+                        // Reset all opacities
+                        document.querySelectorAll('.risk-cell').forEach(cell => {
+                            cell.style.opacity = '0.4';
+                            cell.style.transform = 'scale(1)';
+                            cell.style.boxShadow = 'none';
+                        });
+                        
+                        // Highlight selected
+                        td.style.opacity = '1';
+                        td.style.transform = 'scale(1.1)';
+                        td.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+                        td.style.position = 'relative';
+                        td.style.zIndex = '10';
+
+                        // Update result text
+                        resultDiv.className = `mt-4 p-3 rounded-lg text-center font-bold border transition-colors ${getRiskColor(score)}`;
+                        resultDiv.innerHTML = `Likelihood (${l.val}) × Impact (${i}) = <strong>Score: ${score}</strong><br><span class="text-sm font-normal">${getRiskLevelStr(score)}</span>`;
+                    });
+                    
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
